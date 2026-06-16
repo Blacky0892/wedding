@@ -10,8 +10,7 @@ const props = defineProps({
 
 const emit = defineEmits(['open']);
 
-const fileUrl = computed(() => `/storage/${props.media.disk_path}`);
-const thumbnailUrl = computed(() => props.media.thumbnail_path ? `/storage/${props.media.thumbnail_path}` : fileUrl.value);
+const thumbnailUrl = computed(() => props.media.thumbnail_url || null);
 const uploadedDate = computed(() => {
     const rawDate = props.media.uploaded_at || props.media.created_at;
 
@@ -27,7 +26,7 @@ const isImage = computed(() => props.media.type === 'image');
         <button type="button" class="block w-full text-left" @click="emit('open', media)">
             <div class="aspect-square bg-stone-100">
                 <img
-                    v-if="isImage"
+                    v-if="isImage && thumbnailUrl"
                     :src="thumbnailUrl"
                     :alt="`Фото от ${media.guest_name}`"
                     class="h-full w-full object-cover"

@@ -14,7 +14,7 @@ class WeddingMedia extends Model
 
     public const TYPE_VIDEO = 'video';
 
-    public const STATUS_VISIBLE = 'visible';
+    public const STATUS_UPLOADED = 'uploaded';
 
     public const STATUS_HIDDEN = 'hidden';
 
@@ -61,7 +61,7 @@ class WeddingMedia extends Model
      */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_VISIBLE);
+        return $query->where('status', self::STATUS_UPLOADED);
     }
 
     /**

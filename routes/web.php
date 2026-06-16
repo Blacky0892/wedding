@@ -6,7 +6,7 @@ use App\Http\Controllers\Wedding\PublicWeddingMediaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', [PublicWeddingMediaController::class, 'index'])->name('wedding.media.index');
+Route::get('/', [PublicWeddingMediaController::class, 'index'])->name('wedding.index');
 
 Route::get('/api/wedding/media', [PublicWeddingMediaController::class, 'list'])->name('wedding.media.list');
 Route::post('/api/wedding/media', [PublicWeddingMediaController::class, 'store'])
