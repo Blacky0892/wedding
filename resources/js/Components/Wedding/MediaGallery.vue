@@ -41,7 +41,7 @@ defineExpose({ refresh: loadMedia });
 </script>
 
 <template>
-    <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-100 sm:p-8">
+    <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-primary-100 sm:p-8">
         <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-stone-900">Галерея гостей</h2>
@@ -49,14 +49,14 @@ defineExpose({ refresh: loadMedia });
             </div>
             <button
                 type="button"
-                class="self-start rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                class="self-start rounded-full border border-primary-200 px-4 py-2 text-sm font-semibold text-primary-600 transition hover:bg-primary-50"
                 @click="loadMedia"
             >
                 Обновить галерею
             </button>
         </div>
 
-        <p v-if="isLoading" class="rounded-2xl bg-rose-50 p-4 text-sm text-stone-600">Загружаем материалы…</p>
+        <p v-if="isLoading" class="rounded-2xl bg-primary-50 p-4 text-sm text-stone-600">Загружаем материалы…</p>
         <p v-else-if="errorMessage" class="rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-700">{{ errorMessage }}</p>
         <p v-else-if="!mediaItems.length" class="rounded-2xl bg-stone-50 p-6 text-center text-stone-600">
             Пока нет загруженных материалов. Станьте первым гостем, который поделится кадрами!

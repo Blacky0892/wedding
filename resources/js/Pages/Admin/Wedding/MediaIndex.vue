@@ -70,7 +70,7 @@ const statusClasses = (status) => ({
 </script>
 
 <template>
-    <Head title="Wedding Media" />
+    <Head title="Медиа свадьбы" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -81,7 +81,7 @@ const statusClasses = (status) => ({
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div v-if="flash.success" class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">
+                <div v-if="flash.success" class="mb-4 rounded-md bg-primary-50 p-4 text-sm text-primary-700">
                     {{ flash.success }}
                 </div>
                 <div v-if="flash.error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">
@@ -138,7 +138,7 @@ const statusClasses = (status) => ({
                             v-html="link.label"
                             class="rounded-md px-3 py-2 text-sm"
                             :class="[
-                                link.active ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300',
+                                link.active ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300',
                                 !link.url ? 'pointer-events-none opacity-50' : '',
                             ]"
                         />

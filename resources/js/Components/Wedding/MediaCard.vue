@@ -22,7 +22,7 @@ const isImage = computed(() => props.media.type === 'image');
 </script>
 
 <template>
-    <article class="overflow-hidden rounded-3xl border border-rose-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article class="overflow-hidden rounded-3xl border border-primary-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
         <button type="button" class="block w-full text-left" @click="emit('open', media)">
             <div class="aspect-square bg-stone-100">
                 <img

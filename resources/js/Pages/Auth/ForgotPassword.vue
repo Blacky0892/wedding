@@ -23,7 +23,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Forgot Password" />
+        <Head title="Восстановление пароля" />
 
         <div class="mb-4 text-sm text-gray-600">
             Forgot your password? No problem. Just let us know your email
@@ -33,7 +33,7 @@ const submit = () => {
 
         <div
             v-if="status"
-            class="mb-4 text-sm font-medium text-green-600"
+            class="mb-4 text-sm font-medium text-primary-600"
         >
             {{ status }}
         </div>
