@@ -21,11 +21,11 @@ class YandexDiskService
 
     public function ensureDirectory(string $path): void
     {
-        $response = $this->authorizedRequest()
-            ->withQueryParameters([
+        $response = $this->authorizedRequest()->send('PUT', $this->resourcesUrl(), [
+            'query' => [
                 'path' => $path,
-            ])
-            ->put($this->resourcesUrl());
+            ],
+        ]);
 
         if ($response->successful() || $response->status() === 409) {
             return;
@@ -90,12 +90,12 @@ class YandexDiskService
 
     public function delete(string $diskPath): void
     {
-        $response = $this->authorizedRequest()
-            ->withQueryParameters([
+        $response = $this->authorizedRequest()->send('DELETE', $this->resourcesUrl(), [
+            'query' => [
                 'path' => $diskPath,
                 'permanently' => 'true',
-            ])
-            ->delete($this->resourcesUrl());
+            ],
+        ]);
 
         if ($response->successful()) {
             return;
