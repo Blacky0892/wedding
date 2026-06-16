@@ -5,17 +5,19 @@ namespace App\Http\Controllers\Wedding;
 use App\Http\Controllers\Controller;
 use App\Models\WeddingMedia;
 use App\Services\WeddingMediaService;
+use App\Services\YandexDiskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class AdminWeddingMediaController extends Controller
 {
     public function index(Request $request): Response|JsonResponse
     {
-        $query = WeddingMedia::query()->withTrashed()->latestFirst();
+        $query = WeddingMedia::latestFirst();
 
         if ($request->string('type')->toString() === WeddingMedia::TYPE_IMAGE) {
             $query->images();
@@ -29,7 +31,7 @@ class AdminWeddingMediaController extends Controller
             return response()->json($query->paginate($request->integer('per_page', 24)));
         }
 
-        return Inertia::render('Wedding/Admin/Media/Index', [
+        return Inertia::render('Admin/Wedding/MediaIndex', [
             'media' => $query->paginate($request->integer('per_page', 24)),
         ]);
     }
@@ -49,9 +51,23 @@ class AdminWeddingMediaController extends Controller
         return $this->response($media, __('Media restored successfully.'));
     }
 
-    public function destroy(WeddingMedia $media, WeddingMediaService $service): JsonResponse|RedirectResponse
+    public function destroy(WeddingMedia $media, YandexDiskService $yandexDisk): JsonResponse|RedirectResponse
     {
-        $service->delete($media);
+        $media->update(['status' => WeddingMedia::STATUS_DELETED]);
+
+        try {
+            $yandexDisk->delete($media->disk_path);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => __('Media marked as deleted, but the original file could not be removed.'),
+                ], 500);
+            }
+
+            return back()->with('error', __('Media marked as deleted, but the original file could not be removed.'));
+        }
 
         if (request()->expectsJson()) {
             return response()->json(status: 204);
