@@ -70,7 +70,7 @@ const statusClasses = (status) => ({
 </script>
 
 <template>
-    <Head title="Wedding Media" />
+    <Head title="Медиа свадьбы" />
 
     <AuthenticatedLayout>
         <template #header>

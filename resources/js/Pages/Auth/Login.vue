@@ -31,7 +31,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head title="Вход" />
 
         <div v-if="status" class="mb-4 text-sm font-medium text-primary-600">
             {{ status }}
