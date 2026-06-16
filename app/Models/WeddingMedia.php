@@ -18,6 +18,8 @@ class WeddingMedia extends Model
 
     public const STATUS_HIDDEN = 'hidden';
 
+    public const STATUS_DELETED = 'deleted';
+
     protected $table = 'wedding_media';
 
     /**
