@@ -63,7 +63,7 @@ const deleteMedia = (item) => {
 };
 
 const statusClasses = (status) => ({
-    visible: 'bg-green-100 text-green-800',
+    visible: 'bg-primary-100 text-primary-800',
     hidden: 'bg-yellow-100 text-yellow-800',
     deleted: 'bg-red-100 text-red-800',
 }[status] || 'bg-gray-100 text-gray-800');
@@ -81,7 +81,7 @@ const statusClasses = (status) => ({
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div v-if="flash.success" class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">
+                <div v-if="flash.success" class="mb-4 rounded-md bg-primary-50 p-4 text-sm text-primary-700">
                     {{ flash.success }}
                 </div>
                 <div v-if="flash.error" class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">
@@ -116,7 +116,7 @@ const statusClasses = (status) => ({
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
-                                            <a :href="route('wedding.media.download', item.id)" class="inline-flex items-center rounded-md border border-transparent bg-gray-800 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700">Скачать</a>
+                                            <a :href="route('wedding.media.download', item.id)" class="inline-flex items-center rounded-md border border-transparent bg-primary-500 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-primary-600">Скачать</a>
                                             <SecondaryButton v-if="item.status === 'visible'" @click="hideMedia(item)">Скрыть</SecondaryButton>
                                             <SecondaryButton v-if="item.status !== 'visible' && item.status !== 'deleted'" @click="restoreMedia(item)">Вернуть</SecondaryButton>
                                             <DangerButton v-if="item.status !== 'deleted'" @click="deleteMedia(item)">Удалить</DangerButton>
@@ -138,7 +138,7 @@ const statusClasses = (status) => ({
                             v-html="link.label"
                             class="rounded-md px-3 py-2 text-sm"
                             :class="[
-                                link.active ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300',
+                                link.active ? 'bg-primary-500 text-white' : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300',
                                 !link.url ? 'pointer-events-none opacity-50' : '',
                             ]"
                         />

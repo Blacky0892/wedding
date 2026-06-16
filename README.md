@@ -1,3 +1,26 @@
+# Wedding Gallery
+
+## Создание пользователя-админа
+
+Отдельной роли администратора в проекте нет: доступ к административному разделу `/admin/wedding/media` получает любой подтвержденный пользователь, который вошел в систему.
+
+Создать такого пользователя можно через Laravel Tinker:
+
+```bash
+php artisan tinker
+```
+
+```php
+App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'password' => 'secure-password',
+    'email_verified_at' => now(),
+]);
+```
+
+После этого войдите под указанным email и паролем и откройте `/admin/wedding/media`.
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

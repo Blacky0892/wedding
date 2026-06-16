@@ -82,7 +82,7 @@ const upload = async () => {
 </script>
 
 <template>
-    <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-100 sm:p-8">
+    <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-primary-100 sm:p-8">
         <div class="mb-6">
             <h2 class="text-2xl font-bold text-stone-900">Загрузить фото или видео</h2>
             <p class="mt-2 text-sm text-stone-600">Укажите имя и выберите один или несколько файлов.</p>
@@ -95,7 +95,7 @@ const upload = async () => {
                     id="guest_name"
                     v-model="guestName"
                     type="text"
-                    class="mt-2 block w-full rounded-2xl border-stone-300 shadow-sm focus:border-rose-500 focus:ring-rose-500"
+                    class="mt-2 block w-full rounded-2xl border-stone-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     placeholder="Например, Анна"
                     :disabled="isUploading"
                 />
@@ -109,7 +109,7 @@ const upload = async () => {
                     type="file"
                     multiple
                     accept="image/*,video/*"
-                    class="mt-2 block w-full cursor-pointer rounded-2xl border border-dashed border-rose-200 bg-rose-50/60 p-4 text-sm text-stone-700 file:mr-4 file:rounded-full file:border-0 file:bg-rose-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-rose-600"
+                    class="mt-2 block w-full cursor-pointer rounded-2xl border border-dashed border-primary-200 bg-primary-50/60 p-4 text-sm text-stone-700 file:mr-4 file:rounded-full file:border-0 file:bg-primary-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-600"
                     :disabled="isUploading"
                     @change="onFilesChange"
                 />
@@ -117,18 +117,18 @@ const upload = async () => {
             </div>
 
             <div v-if="isUploading" class="space-y-2">
-                <div class="h-3 overflow-hidden rounded-full bg-rose-100">
-                    <div class="h-full rounded-full bg-rose-500 transition-all" :style="{ width: `${progress}%` }"></div>
+                <div class="h-3 overflow-hidden rounded-full bg-primary-100">
+                    <div class="h-full rounded-full bg-primary-500 transition-all" :style="{ width: `${progress}%` }"></div>
                 </div>
                 <p class="text-sm text-stone-600">Загрузка: {{ progress }}%</p>
             </div>
 
-            <p v-if="successMessage" class="rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-700">{{ successMessage }}</p>
+            <p v-if="successMessage" class="rounded-2xl bg-primary-50 p-4 text-sm font-medium text-primary-700">{{ successMessage }}</p>
             <p v-if="errorMessage" class="rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-700">{{ errorMessage }}</p>
 
             <button
                 type="submit"
-                class="inline-flex items-center rounded-full bg-rose-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
+                class="inline-flex items-center rounded-full bg-primary-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isUploading"
             >
                 {{ isUploading ? 'Загружаем…' : 'Загрузить файлы' }}

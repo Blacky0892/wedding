@@ -51,16 +51,16 @@ watch(
                         class="mx-auto max-h-[70vh] rounded-2xl object-contain"
                     />
                     <div v-else class="mx-auto flex max-w-xl flex-col items-center gap-5 rounded-2xl bg-white p-8 text-center">
-                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 text-4xl text-rose-600">▶</div>
+                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 text-4xl text-primary-600">▶</div>
                         <div>
                             <h3 class="text-xl font-bold text-stone-900">Видео доступно по ссылке</h3>
                             <p class="mt-2 text-sm text-stone-600">Откройте видео в новой вкладке или скачайте файл на устройство.</p>
                         </div>
                         <div class="flex flex-wrap justify-center gap-3">
-                            <a :href="fileUrl" target="_blank" rel="noopener" class="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white hover:bg-rose-600">
+                            <a :href="fileUrl" target="_blank" rel="noopener" class="rounded-full bg-primary-500 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-600">
                                 Смотреть видео
                             </a>
-                            <a :href="downloadUrl" class="rounded-full border border-rose-200 px-5 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50">
+                            <a :href="downloadUrl" class="rounded-full border border-primary-200 px-5 py-3 text-sm font-semibold text-primary-600 hover:bg-primary-50">
                                 Скачать видео
                             </a>
                         </div>
