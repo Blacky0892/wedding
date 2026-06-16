@@ -18,7 +18,7 @@ class PublicWeddingMediaController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Wedding/Media/Index');
+        return Inertia::render('Wedding/Index');
     }
 
     public function list(Request $request): JsonResponse
