@@ -10,10 +10,12 @@ use App\Services\YandexDiskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class PublicWeddingMediaController extends Controller
@@ -72,11 +74,45 @@ class PublicWeddingMediaController extends Controller
         return back()->with('success', __('Media uploaded successfully.'));
     }
 
-    public function show(WeddingMedia $media, YandexDiskService $yandexDisk): RedirectResponse
+    public function show(WeddingMedia $media, YandexDiskService $yandexDisk): RedirectResponse|StreamedResponse
     {
         abort_unless($media->status === WeddingMedia::STATUS_UPLOADED, 404);
 
-        return redirect()->away($yandexDisk->getDownloadUrl($media->disk_path));
+        if ($media->type !== WeddingMedia::TYPE_IMAGE) {
+            return redirect()->away($yandexDisk->getDownloadUrl($media->disk_path));
+        }
+
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'wedding-media-');
+
+        if ($temporaryPath === false) {
+            abort(503, 'Не удалось открыть изображение. Попробуйте позже.');
+        }
+
+        try {
+            $response = Http::timeout(60)
+                ->sink($temporaryPath)
+                ->get($yandexDisk->getDownloadUrl($media->disk_path));
+
+            if (! $response->successful()) {
+                abort(503, 'Не удалось открыть изображение. Попробуйте позже.');
+            }
+
+            return response()->stream(function () use ($temporaryPath): void {
+                readfile($temporaryPath);
+
+                @unlink($temporaryPath);
+            }, 200, [
+                'Content-Disposition' => 'inline; filename="'.addslashes($media->original_name).'"',
+                'Content-Length' => (string) filesize($temporaryPath),
+                'Content-Type' => $media->mime_type ?: 'application/octet-stream',
+            ]);
+        } catch (Throwable $exception) {
+            @unlink($temporaryPath);
+
+            report($exception);
+
+            abort(503, 'Не удалось открыть изображение. Попробуйте позже.');
+        }
     }
 
     public function download(WeddingMedia $media, YandexDiskService $yandexDisk): RedirectResponse
