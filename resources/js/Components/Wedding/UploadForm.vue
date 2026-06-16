@@ -96,7 +96,7 @@ const upload = async () => {
                     v-model="guestName"
                     type="text"
                     class="mt-2 block w-full rounded-2xl border-stone-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                    placeholder="Например, Анна"
+                    placeholder="Например, Настя"
                     :disabled="isUploading"
                 />
             </div>

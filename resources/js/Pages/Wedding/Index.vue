@@ -46,40 +46,6 @@ const refreshGallery = () => {
                 </article>
             </section>
 
-            <section class="rounded-[2rem] bg-white/90 p-6 shadow-sm ring-1 ring-primary-100 sm:p-8">
-                <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-                    <div>
-                        <p class="text-sm font-semibold uppercase tracking-[0.35em] text-primary-500">Тайминг</p>
-                        <h2 class="mt-3 text-3xl font-bold tracking-tight text-stone-900">Как будет проходить день</h2>
-                        <p class="mt-4 text-sm leading-6 text-stone-600">
-                            Будем рады, если гости приедут немного заранее, чтобы спокойно встретиться и начать праздник без спешки.
-                        </p>
-                    </div>
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        <div class="rounded-2xl bg-primary-50 p-4">
-                            <p class="text-sm font-semibold text-primary-700">14:00</p>
-                            <p class="mt-1 font-semibold text-stone-900">Сбор гостей</p>
-                            <p class="mt-1 text-sm text-stone-600">Встречаемся и заряжаемся хорошим настроением.</p>
-                        </div>
-                        <div class="rounded-2xl bg-primary-50 p-4">
-                            <p class="text-sm font-semibold text-primary-700">15:00</p>
-                            <p class="mt-1 font-semibold text-stone-900">Церемония</p>
-                            <p class="mt-1 text-sm text-stone-600">Самый трогательный момент свадебного дня.</p>
-                        </div>
-                        <div class="rounded-2xl bg-primary-50 p-4">
-                            <p class="text-sm font-semibold text-primary-700">16:00</p>
-                            <p class="mt-1 font-semibold text-stone-900">Банкет</p>
-                            <p class="mt-1 text-sm text-stone-600">Еда, тосты, музыка и танцы.</p>
-                        </div>
-                        <div class="rounded-2xl bg-primary-50 p-4">
-                            <p class="text-sm font-semibold text-primary-700">21:00</p>
-                            <p class="mt-1 font-semibold text-stone-900">Торт</p>
-                            <p class="mt-1 text-sm text-stone-600">Сладкая часть вечера перед финалом в 22:30.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <UploadForm @uploaded="refreshGallery" />
             <MediaGallery ref="gallery" />
         </section>
