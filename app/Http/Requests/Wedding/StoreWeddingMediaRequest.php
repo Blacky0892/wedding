@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Wedding;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreWeddingMediaRequest extends FormRequest
 {
@@ -24,17 +23,26 @@ class StoreWeddingMediaRequest extends FormRequest
     {
         $allowedExtensions = (array) config('wedding.allowed_extensions');
         $allowedMimeTypes = (array) config('wedding.allowed_mime_types');
-        $maxFileSizeKilobytes = (int) config('wedding.max_file_size_mb') * 1024;
+
+        $maxFilesPerRequest = (int) config('wedding.max_files_per_request', 10);
+        $maxFileSizeKilobytes = (int) config('wedding.max_file_size_mb', 300) * 1024;
 
         return [
             'guest_name' => ['required', 'string', 'max:255'],
-            'files' => ['required', 'array', 'min:1', 'max:'.config('wedding.max_files_per_request')],
+
+            'files' => [
+                'required',
+                'array',
+                'min:1',
+                'max:' . $maxFilesPerRequest,
+            ],
+
             'files.*' => [
                 'required',
                 'file',
-                Rule::mimetypes($allowedMimeTypes),
-                'extensions:'.implode(',', $allowedExtensions),
-                'max:'.$maxFileSizeKilobytes,
+                'mimetypes:' . implode(',', $allowedMimeTypes),
+                'extensions:' . implode(',', $allowedExtensions),
+                'max:' . $maxFileSizeKilobytes,
             ],
         ];
     }
