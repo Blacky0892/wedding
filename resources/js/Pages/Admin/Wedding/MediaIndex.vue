@@ -63,7 +63,7 @@ const deleteMedia = (item) => {
 };
 
 const statusClasses = (status) => ({
-    visible: 'bg-primary-100 text-primary-800',
+    uploaded: 'bg-green-100 text-green-800',
     hidden: 'bg-yellow-100 text-yellow-800',
     deleted: 'bg-red-100 text-red-800',
 }[status] || 'bg-gray-100 text-gray-800');
@@ -116,9 +116,9 @@ const statusClasses = (status) => ({
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
-                                            <a :href="route('wedding.media.download', item.id)" class="inline-flex items-center rounded-md border border-transparent bg-primary-500 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-primary-600">Скачать</a>
-                                            <SecondaryButton v-if="item.status === 'visible'" @click="hideMedia(item)">Скрыть</SecondaryButton>
-                                            <SecondaryButton v-if="item.status !== 'visible' && item.status !== 'deleted'" @click="restoreMedia(item)">Вернуть</SecondaryButton>
+                                            <a :href="route('wedding.media.download', item.id)" class="inline-flex items-center rounded-md border border-transparent bg-gray-800 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700">Скачать</a>
+                                            <SecondaryButton v-if="item.status === 'uploaded'" @click="hideMedia(item)">Скрыть</SecondaryButton>
+                                            <SecondaryButton v-if="item.status !== 'uploaded' && item.status !== 'deleted'" @click="restoreMedia(item)">Вернуть</SecondaryButton>
                                             <DangerButton v-if="item.status !== 'deleted'" @click="deleteMedia(item)">Удалить</DangerButton>
                                         </div>
                                     </td>

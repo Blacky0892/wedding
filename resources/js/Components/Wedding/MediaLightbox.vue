@@ -10,8 +10,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-const fileUrl = computed(() => props.media ? `/storage/${props.media.disk_path}` : '#');
-const downloadUrl = computed(() => props.media ? `/wedding/media/${props.media.id}/download` : '#');
+const fileUrl = computed(() => props.media?.view_url || '#');
+const downloadUrl = computed(() => props.media?.download_url || '#');
 const isImage = computed(() => props.media?.type === 'image');
 const uploadedDate = computed(() => {
     const rawDate = props.media?.uploaded_at || props.media?.created_at;

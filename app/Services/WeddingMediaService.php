@@ -8,12 +8,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class WeddingMediaService
 {
     public function __construct(
-        private readonly string $disk = 'public',
-        private readonly string $directory = 'wedding-media',
+        private readonly YandexDiskService $yandexDisk,
+        private readonly string $thumbnailDisk = 'public',
+        private readonly string $thumbnailDirectory = 'wedding/thumbs',
     ) {}
 
     /**
@@ -28,10 +30,17 @@ class WeddingMediaService
     public function storeUpload(string $guestName, UploadedFile $file): WeddingMedia
     {
         $storedName = $this->generateStoredName($file);
-        $diskPath = $file->storeAs($this->directory, $storedName, $this->disk);
         $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+        $extension = Str::lower($file->getClientOriginalExtension() ?: $file->extension() ?: pathinfo($storedName, PATHINFO_EXTENSION));
         $type = $this->detectType($mimeType);
-        $thumbnailPath = $type === WeddingMedia::TYPE_IMAGE ? $this->createThumbnail($diskPath) : null;
+        $diskPath = rtrim((string) config('wedding.yandex_disk.originals_path'), '/').'/'.$storedName;
+
+        $this->ensureYandexDirectories();
+        $this->yandexDisk->upload($file->getRealPath() ?: $file->path(), $diskPath);
+
+        $thumbnailPath = $type === WeddingMedia::TYPE_IMAGE
+            ? $this->createThumbnail($file, $storedName, $extension)
+            : null;
 
         return WeddingMedia::create([
             'guest_name' => $guestName,
@@ -40,10 +49,10 @@ class WeddingMediaService
             'disk_path' => $diskPath,
             'thumbnail_path' => $thumbnailPath,
             'mime_type' => $mimeType,
-            'extension' => $file->getClientOriginalExtension() ?: $file->extension(),
+            'extension' => $extension,
             'size' => $file->getSize() ?: 0,
             'type' => $type,
-            'status' => WeddingMedia::STATUS_VISIBLE,
+            'status' => WeddingMedia::STATUS_UPLOADED,
             'uploaded_at' => Carbon::now(),
         ]);
     }
@@ -61,29 +70,45 @@ class WeddingMediaService
             $media->restore();
         }
 
-        $media->update(['status' => WeddingMedia::STATUS_VISIBLE]);
+        $media->update(['status' => WeddingMedia::STATUS_UPLOADED]);
 
         return $media->refresh();
     }
 
-    public function delete(WeddingMedia $media): bool
+    public function delete(WeddingMedia $media): WeddingMedia
     {
-        return (bool) $media->delete();
+        $this->yandexDisk->delete($media->disk_path);
+        Storage::disk($this->thumbnailDisk)->delete(array_filter([$media->thumbnail_path]));
+        $media->update(['status' => WeddingMedia::STATUS_DELETED]);
+        $media->delete();
+
+        return $media;
     }
 
-    public function deleteFiles(WeddingMedia $media): void
+    public function serializeForPublic(WeddingMedia $media): array
     {
-        Storage::disk($this->disk)->delete(array_filter([
-            $media->disk_path,
-            $media->thumbnail_path,
-        ]));
+        return [
+            'id' => $media->id,
+            'guest_name' => $media->guest_name,
+            'type' => $media->type,
+            'thumbnail_url' => $media->thumbnail_path ? Storage::disk($this->thumbnailDisk)->url($media->thumbnail_path) : null,
+            'view_url' => route('wedding.media.show', $media),
+            'download_url' => route('wedding.media.download', $media),
+            'created_at' => optional($media->uploaded_at ?? $media->created_at)->toISOString(),
+        ];
     }
 
     public function generateStoredName(UploadedFile $file): string
     {
-        $extension = $file->getClientOriginalExtension() ?: $file->extension();
+        $extension = Str::lower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
 
-        return Str::uuid()->toString().($extension ? '.'.Str::lower($extension) : '');
+        return Str::uuid()->toString().'.'.$extension;
+    }
+
+    private function ensureYandexDirectories(): void
+    {
+        $this->yandexDisk->ensureDirectory((string) config('wedding.yandex_disk.base_path'));
+        $this->yandexDisk->ensureDirectory((string) config('wedding.yandex_disk.originals_path'));
     }
 
     private function detectType(string $mimeType): string
@@ -91,13 +116,13 @@ class WeddingMediaService
         return Str::startsWith($mimeType, 'video/') ? WeddingMedia::TYPE_VIDEO : WeddingMedia::TYPE_IMAGE;
     }
 
-    private function createThumbnail(string $diskPath): ?string
+    private function createThumbnail(UploadedFile $file, string $storedName, string $extension): ?string
     {
-        if (! extension_loaded('gd')) {
+        if (! extension_loaded('gd') || in_array($extension, ['heic', 'heif'], true)) {
             return null;
         }
 
-        $sourcePath = Storage::disk($this->disk)->path($diskPath);
+        $sourcePath = $file->getRealPath() ?: $file->path();
         $imageSize = @getimagesize($sourcePath);
 
         if ($imageSize === false) {
@@ -105,11 +130,14 @@ class WeddingMediaService
         }
 
         [$width, $height] = $imageSize;
+        if ($width <= 0 || $height <= 0) {
+            return null;
+        }
+
         $source = match ($imageSize['mime'] ?? null) {
             'image/jpeg' => @imagecreatefromjpeg($sourcePath),
             'image/png' => @imagecreatefrompng($sourcePath),
             'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($sourcePath) : false,
-            'image/gif' => @imagecreatefromgif($sourcePath),
             default => false,
         };
 
@@ -117,15 +145,20 @@ class WeddingMediaService
             return null;
         }
 
-        $targetWidth = 480;
+        $targetWidth = min(600, $width);
         $targetHeight = max(1, (int) round($height * ($targetWidth / $width)));
         $thumbnail = imagecreatetruecolor($targetWidth, $targetHeight);
         imagecopyresampled($thumbnail, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
 
-        $thumbnailName = pathinfo($diskPath, PATHINFO_FILENAME).'.jpg';
-        $thumbnailPath = $this->directory.'/thumbnails/'.$thumbnailName;
-        Storage::disk($this->disk)->makeDirectory($this->directory.'/thumbnails');
-        imagejpeg($thumbnail, Storage::disk($this->disk)->path($thumbnailPath), 85);
+        $thumbnailPath = $this->thumbnailDirectory.'/'.pathinfo($storedName, PATHINFO_FILENAME).'.jpg';
+        Storage::disk($this->thumbnailDisk)->makeDirectory($this->thumbnailDirectory);
+
+        if (! imagejpeg($thumbnail, Storage::disk($this->thumbnailDisk)->path($thumbnailPath), 85)) {
+            imagedestroy($source);
+            imagedestroy($thumbnail);
+
+            throw new RuntimeException('Не удалось создать превью изображения.');
+        }
 
         imagedestroy($source);
         imagedestroy($thumbnail);

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Wedding;
 use App\Http\Controllers\Controller;
 use App\Models\WeddingMedia;
 use App\Services\WeddingMediaService;
-use App\Services\YandexDiskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +16,7 @@ class AdminWeddingMediaController extends Controller
 {
     public function index(Request $request): Response|JsonResponse
     {
-        $query = WeddingMedia::latestFirst();
+        $query = WeddingMedia::withTrashed()->latestFirst();
 
         if ($request->string('type')->toString() === WeddingMedia::TYPE_IMAGE) {
             $query->images();
@@ -51,22 +50,20 @@ class AdminWeddingMediaController extends Controller
         return $this->response($media, __('Media restored successfully.'));
     }
 
-    public function destroy(WeddingMedia $media, YandexDiskService $yandexDisk): JsonResponse|RedirectResponse
+    public function destroy(WeddingMedia $media, WeddingMediaService $service): JsonResponse|RedirectResponse
     {
-        $media->update(['status' => WeddingMedia::STATUS_DELETED]);
-
         try {
-            $yandexDisk->delete($media->disk_path);
+            $service->delete($media);
         } catch (Throwable $exception) {
             report($exception);
 
             if (request()->expectsJson()) {
                 return response()->json([
-                    'message' => __('Media marked as deleted, but the original file could not be removed.'),
+                    'message' => __('Не удалось удалить файл с Яндекс Диска. Файл не был помечен удалённым.'),
                 ], 500);
             }
 
-            return back()->with('error', __('Media marked as deleted, but the original file could not be removed.'));
+            return back()->with('error', __('Не удалось удалить файл с Яндекс Диска. Файл не был помечен удалённым.'));
         }
 
         if (request()->expectsJson()) {

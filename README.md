@@ -1,82 +1,94 @@
-# Wedding Gallery
+# Свадебная медиагалерея
 
-## Создание пользователя-админа
+Laravel/Vue/Inertia-приложение для публичной загрузки свадебных фото и видео без авторизации гостей. Оригиналы файлов загружаются сервером на Яндекс Диск владельца, OAuth-токен не попадает во frontend. Метаданные хранятся в MariaDB, локально сохраняются только превью изображений.
 
-Отдельной роли администратора в проекте нет: доступ к административному разделу `/admin/wedding/media` получает любой подтвержденный пользователь, который вошел в систему.
-
-Создать такого пользователя можно через Laravel Tinker:
+## Установка
 
 ```bash
-php artisan tinker
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan storage:link
+php artisan migrate
 ```
 
-```php
-App\Models\User::create([
-    'name' => 'Admin',
-    'email' => 'admin@example.com',
-    'password' => 'secure-password',
-    'email_verified_at' => now(),
-]);
+Для разработки запустите frontend и backend:
+
+```bash
+npm run dev
+php artisan serve
 ```
 
-После этого войдите под указанным email и паролем и откройте `/admin/wedding/media`.
+## Переменные окружения
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Добавьте или проверьте в `.env`:
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+```env
+YANDEX_DISK_TOKEN=
+YANDEX_DISK_BASE_PATH=/WeddingPhotos
+YANDEX_DISK_ORIGINALS_PATH=/WeddingPhotos/originals
+YANDEX_DISK_THUMBS_PATH=/WeddingPhotos/thumbs
+WEDDING_UPLOADS_ENABLED=true
+WEDDING_MAX_FILE_SIZE_MB=300
+WEDDING_MAX_FILES_PER_REQUEST=10
+WEDDING_UPLOAD_THROTTLE=20,1
+```
 
-## About Laravel
+* `WEDDING_UPLOADS_ENABLED=false` выключает публичную загрузку.
+* `WEDDING_MAX_FILE_SIZE_MB` — максимальный размер одного файла.
+* `WEDDING_MAX_FILES_PER_REQUEST` — сколько файлов можно отправить за один запрос.
+* `WEDDING_UPLOAD_THROTTLE=20,1` — не чаще 20 запросов в минуту с одного IP.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## OAuth-токен Яндекс Диска
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. Создайте приложение в Яндекс OAuth: https://oauth.yandex.ru/client/new.
+2. Выдайте приложению права Яндекс Диска на чтение и запись файлов.
+3. Получите OAuth-токен для аккаунта владельца диска.
+4. Сохраните токен только в `.env` в `YANDEX_DISK_TOKEN`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Не добавляйте токен в JavaScript и не отдавайте гостям ссылку на папку с правами редактирования.
 
-## Learning Laravel
+## Функциональность
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Гость
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* Открывает `/`.
+* Указывает имя.
+* Выбирает один или несколько файлов.
+* Видит прогресс, успешную загрузку или понятную ошибку.
+* Видит общую галерею без кнопок удаления.
 
-## Laravel Sponsors
+Поддерживаемые типы: `jpg`, `jpeg`, `png`, `webp`, `heic`, `heif`, `mp4`, `mov`, `webm`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Администратор
 
-### Premium Partners
+После входа через стандартную авторизацию Laravel/Breeze доступна страница `/admin/wedding/media`.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Администратор может:
 
-## Contributing
+* просматривать все файлы;
+* скачивать файл через безопасный backend-route;
+* скрывать файл из публичной галереи;
+* возвращать скрытый файл;
+* удалять файл: запись помечается `deleted`, а оригинал удаляется с Яндекс Диска.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Превью
 
-## Code of Conduct
+Для изображений `jpg`, `jpeg`, `png`, `webp` при наличии PHP GD создаётся локальное превью шириной до 600px в `storage/app/public/wedding/thumbs`. Для HEIC/HEIF и видео показывается заглушка, так как стандартный GD обычно не умеет декодировать HEIC/HEIF.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Проверка
 
-## Security Vulnerabilities
+```bash
+composer install
+npm install
+php artisan migrate
+npm run dev
+php artisan serve
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Для production-сборки frontend:
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+npm run build
+```

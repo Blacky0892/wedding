@@ -10,7 +10,10 @@ use RuntimeException;
 
 class YandexDiskService
 {
-    private const BASE_URL = 'https://cloud-api.yandex.net/v1/disk/resources';
+    private function resourcesUrl(string $suffix = ''): string
+    {
+        return rtrim((string) config('wedding.yandex_disk.api_base_url', 'https://cloud-api.yandex.net/v1/disk'), '/').'/resources'.$suffix;
+    }
 
     public function __construct(
         private readonly ?string $token = null,
@@ -18,11 +21,11 @@ class YandexDiskService
 
     public function ensureDirectory(string $path): void
     {
-        $response = $this->authorizedRequest()
-            ->withQueryParameters([
+        $response = $this->authorizedRequest()->send('PUT', $this->resourcesUrl(), [
+            'query' => [
                 'path' => $path,
-            ])
-            ->put(self::BASE_URL);
+            ],
+        ]);
 
         if ($response->successful() || $response->status() === 409) {
             return;
@@ -33,7 +36,7 @@ class YandexDiskService
 
     public function getUploadUrl(string $path, bool $overwrite = false): string
     {
-        $response = $this->authorizedRequest()->get(self::BASE_URL.'/upload', [
+        $response = $this->authorizedRequest()->get($this->resourcesUrl('/upload'), [
             'path' => $path,
             'overwrite' => $overwrite ? 'true' : 'false',
         ]);
@@ -74,7 +77,7 @@ class YandexDiskService
 
     public function getDownloadUrl(string $diskPath): string
     {
-        $response = $this->authorizedRequest()->get(self::BASE_URL.'/download', [
+        $response = $this->authorizedRequest()->get($this->resourcesUrl('/download'), [
             'path' => $diskPath,
         ]);
 
@@ -87,12 +90,12 @@ class YandexDiskService
 
     public function delete(string $diskPath): void
     {
-        $response = $this->authorizedRequest()
-            ->withQueryParameters([
+        $response = $this->authorizedRequest()->send('DELETE', $this->resourcesUrl(), [
+            'query' => [
                 'path' => $diskPath,
                 'permanently' => 'true',
-            ])
-            ->delete(self::BASE_URL);
+            ],
+        ]);
 
         if ($response->successful()) {
             return;
@@ -103,7 +106,7 @@ class YandexDiskService
 
     private function authorizedRequest(): PendingRequest
     {
-        $token = $this->token ?? config('services.yandex_disk.token');
+        $token = $this->token ?? config('wedding.yandex_disk.token');
 
         if (! is_string($token) || $token === '') {
             throw new RuntimeException('Не удалось выполнить операцию с Яндекс Диском. Сервис временно недоступен.');
@@ -148,7 +151,7 @@ class YandexDiskService
      */
     private function sanitizeLogValue(mixed $value): mixed
     {
-        $token = $this->token ?? config('services.yandex_disk.token');
+        $token = $this->token ?? config('wedding.yandex_disk.token');
 
         if (! is_string($token) || $token === '') {
             return $value;

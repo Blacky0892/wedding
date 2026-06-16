@@ -1,0 +1,93 @@
+name: Deploy to Beget
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, pdo_mysql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Prepare SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BEGET_SSH_KEY }}" > ~/.ssh/beget_deploy_key
+          chmod 600 ~/.ssh/beget_deploy_key
+          ssh-keyscan -p "${{ secrets.BEGET_PORT }}" "${{ secrets.BEGET_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy Laravel app to Beget
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/beget_deploy_key -p ${{ secrets.BEGET_PORT }}" \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude=".env" \
+            --exclude="node_modules" \
+            --exclude="public" \
+            --exclude="tests" \
+            --exclude="storage/logs/*" \
+            --exclude="storage/framework/cache/*" \
+            --exclude="storage/framework/sessions/*" \
+            --exclude="storage/framework/views/*" \
+            ./ \
+            ${{ secrets.BEGET_USER }}@${{ secrets.BEGET_HOST }}:${{ secrets.BEGET_APP_PATH }}/
+
+      - name: Deploy public directory to public_html
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/beget_deploy_key -p ${{ secrets.BEGET_PORT }}" \
+            public/ \
+            ${{ secrets.BEGET_USER }}@${{ secrets.BEGET_HOST }}:${{ secrets.BEGET_PUBLIC_PATH }}/
+
+      - name: Fix Laravel public index.php paths
+        run: |
+          ssh -i ~/.ssh/beget_deploy_key -p ${{ secrets.BEGET_PORT }} \
+            ${{ secrets.BEGET_USER }}@${{ secrets.BEGET_HOST }} \
+            "sed -i \"s#__DIR__.'/../vendor/autoload.php'#__DIR__.'/../app/vendor/autoload.php'#\" ${{ secrets.BEGET_PUBLIC_PATH }}/index.php && \
+             sed -i \"s#__DIR__.'/../bootstrap/app.php'#__DIR__.'/../app/bootstrap/app.php'#\" ${{ secrets.BEGET_PUBLIC_PATH }}/index.php"
+
+      - name: Create storage symlink
+        run: |
+          ssh -i ~/.ssh/beget_deploy_key -p ${{ secrets.BEGET_PORT }} \
+            ${{ secrets.BEGET_USER }}@${{ secrets.BEGET_HOST }} \
+            "rm -rf ${{ secrets.BEGET_PUBLIC_PATH }}/storage && \
+             ln -s ${{ secrets.BEGET_APP_PATH }}/storage/app/public ${{ secrets.BEGET_PUBLIC_PATH }}/storage"
+
+      - name: Run Laravel commands
+        run: |
+          ssh -i ~/.ssh/beget_deploy_key -p ${{ secrets.BEGET_PORT }} \
+            ${{ secrets.BEGET_USER }}@${{ secrets.BEGET_HOST }} \
+            "cd ${{ secrets.BEGET_APP_PATH }} && \
+             php8.3 artisan migrate --force && \
+             php8.3 artisan config:clear && \
+             php8.3 artisan route:clear && \
+             php8.3 artisan view:clear && \
+             php8.3 artisan cache:clear && \
+             php8.3 artisan config:cache"
