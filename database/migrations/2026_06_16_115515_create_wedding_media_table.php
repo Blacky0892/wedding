@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('extension', 20)->nullable();
             $table->unsignedBigInteger('size');
             $table->string('type', 20)->index();
-            $table->string('status', 20)->default('visible')->index();
+            $table->string('status', 20)->default('uploaded')->index();
             $table->timestamp('uploaded_at')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
