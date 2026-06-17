@@ -16,7 +16,7 @@ class AdminWeddingMediaController extends Controller
 {
     public function index(Request $request): Response|JsonResponse
     {
-        $query = WeddingMedia::withTrashed()->latestFirst();
+        $query = WeddingMedia::latestFirst();
 
         if ($request->string('type')->toString() === WeddingMedia::TYPE_IMAGE) {
             $query->images();
