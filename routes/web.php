@@ -4,7 +4,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Wedding\AdminWeddingMediaController;
 use App\Http\Controllers\Wedding\PublicWeddingMediaController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', [PublicWeddingMediaController::class, 'index'])->name('wedding.index');
 
@@ -14,10 +13,6 @@ Route::post('/api/wedding/media', [PublicWeddingMediaController::class, 'store']
     ->name('wedding.media.store');
 Route::get('/wedding/media/{media}', [PublicWeddingMediaController::class, 'show'])->name('wedding.media.show');
 Route::get('/wedding/media/{media}/download', [PublicWeddingMediaController::class, 'download'])->name('wedding.media.download');
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
